@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROOMS</title>
+    <style>
+        body {
+            background-color: #121212; /* Dark background */
+            color: #ffffff; /* White text color */
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            width: 300px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #6200ea;
+            color: #ffffff;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3700b3; /* Darker shade on hover */
+        }
+        ul {
+            list-style: none; /* Remove default list styles */
+            padding: 0; /* Remove padding */
+            margin: 20px 0; /* Add margin */
+        }
+        li {
+            margin: 10px 0; /* Space between items */
+        }
+        a {
+            color: #ffffff; /* Link color */
+            text-decoration: none; /* Remove underline */
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s; /* Transition for hover effect */
+        }
+        a:hover {
+            background-color: #3700b3; /* Background color on hover */
+        }
+    </style>
+</head>
+
+
+<body>
+    <header>Join or Create a Room</header>
+
+    <!-- Room Creation -->
+    <input type="text" id="roomNameInput" placeholder="Enter room name">
+    <button onclick="createRoom()">Create Room</button>
+
+    <!-- Existing Rooms -->
+    <ul id="roomList"></ul>
+
+    <script>
+        // Fetch and display existing rooms
+        async function loadRooms() {
+            const response = await fetch('/api/rooms');
+            const rooms = await response.json();
+            const roomList = document.getElementById("roomList");
+            roomList.innerHTML = ''; // Clear the list first
+
+            Object.keys(rooms).forEach(roomId => {
+                const roomItem = document.createElement("li");
+                // roomItem.innerHTML = `<a href="/chat/${roomId}">${rooms[roomId].name}</a>`;
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const userName = urlParams.get('name'); // Get the 'name' from the URL
+
+                roomItem.innerHTML = `<a href="/chat/${roomId}?name=${encodeURIComponent(userName)}">${rooms[roomId].name}</a>`;
+
+                roomList.appendChild(roomItem);
+            });
+        }
+
+        async function createRoom() {
+            const roomName = document.getElementById("roomNameInput").value;
+            if (roomName) {
+                await fetch('/api/create-room', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ roomName })
+                });
+                loadRooms(); // Reload room list after creating a new room
+            }
+        }
+
+        window.onload = loadRooms;
+    </script>
+</body>
+
+</html>

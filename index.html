@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter your Name</title>
+    <style>
+        body {
+            background-color: #121212; /* Dark background */
+            color: #ffffff; /* White text color */
+            font-family: Arial, sans-serif; /* Font family */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #1e1e1e; /* Input background */
+            color: #ffffff; /* Input text color */
+            width: 300px; /* Fixed width for input */
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #6200ea; /* Button color */
+            color: #ffffff; /* Button text color */
+            cursor: pointer; /* Pointer cursor on hover */
+            margin-top: 10px;
+            transition: background-color 0.3s; /* Transition for hover effect */
+        }
+        button:hover {
+            background-color: #3700b3; /* Darker shade on hover */
+        }
+    </style>
+    
+</head>
+<body>
+    <input type="text" id="nameinput" placeholder="enter your name">
+    <button onclick="rooms()">Enter</button>
+    <script>
+        function rooms() {
+        const name = document.getElementById("nameinput").value;
+        if (name){
+            window.location.href = `/rooms?name=${encodeURIComponent(name)}`
+        }}
+    </script>
+</body>
+</html>
