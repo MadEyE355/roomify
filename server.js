@@ -11,6 +11,7 @@ app.use(express.json());
 
 // In-memory room storage
 const rooms = {};
+const chatHistory = {}; // Object to store chat history for each room
 
 // Serve static files
 app.get('/', (req, res) => {
@@ -31,6 +32,7 @@ app.post('/api/create-room', (req, res) => {
     const { roomName } = req.body;
     const roomId = `room_${Object.keys(rooms).length + 1}`; // Unique ID for room
     rooms[roomId] = { name: roomName };
+    chatHistory[roomId] = []; // Initialize chat history for the new room
     res.json({ roomId, roomName });
 });
 
@@ -50,9 +52,18 @@ io.on('connection', (socket) => {
         socket.join(roomId);
         socket.to(roomId).emit('message', `${userName} has joined the room.`);
         
+        // Send chat history to the newly joined user
+        if (chatHistory[roomId]) {
+            chatHistory[roomId].forEach(msg => {
+                socket.emit('message', msg); // Emit each message to the new user
+            });
+        }
+
         // Listen for chat messages and broadcast to the same room
         socket.on('chatMessage', (msg) => {
-            io.to(roomId).emit('message', `${userName}: ${msg}`);
+            const message = `${userName}: ${msg}`;
+            chatHistory[roomId].push(message); // Store the message in chat history
+            io.to(roomId).emit('message', message); // Emit the message to all users in the room
         });
     });
 });
