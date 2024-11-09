@@ -9,8 +9,9 @@ const io = new Server(server);
 
 app.use(express.json());
 
-const { MongoClient } = require('mongodb');
-const uri = "mongodb://localhost:27017/"; // replace with your actual connection string
+require('dotenv').config();  // Import dotenv to use environment variables
+const uri = process.env.MONGO_URI;  // Fetch Mongo URI from the environment variable
+
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 async function connectDB() {
