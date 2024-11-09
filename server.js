@@ -10,8 +10,8 @@ const io = new Server(server);
 
 app.use(express.json());
 
-require('dotenv').config();  // Import dotenv to use environment variables
-const uri = process.env.MONGO_URI;  // Fetch Mongo URI from the environment variable
+// require('dotenv').config();  // Import dotenv to use environment variables
+const uri = "mongodb+srv://MadEyE:madeye3936@cluster0.83apq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0;"  // Fetch Mongo URI from the environment variable
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
