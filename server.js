@@ -2,6 +2,7 @@ const express = require('express');
 const { createServer } = require('http');
 const { join } = require('path');
 const { Server } = require('socket.io');
+const { MongoClient } = require('mongodb'); // Import MongoClient correctly
 
 const app = express();
 const server = createServer(app);
