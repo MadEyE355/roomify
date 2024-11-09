@@ -5,15 +5,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ROOMS</title>
+
     <style>
+        /* Main container for rooms list */
+        .room-list-container {
+            display: flex;
+            flex-wrap: wrap; /* Allow items to wrap to the next line */
+            gap: 10px;
+            padding: 20px;
+            justify-content: center;
+        }
+
+        /* Individual room button style to look like a brick */
+        .room-button {
+            background-color: #333;
+            color: #fff;
+            padding: 15px;
+            font-size: 1em;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: fit-content; /* Adjust width to fit content */
+            max-width: 250px; /* Optional maximum width */
+            overflow: hidden; /* Hide overflow if the name is too long */
+            white-space: nowrap; /* Prevent text from wrapping */
+            text-overflow: ellipsis; /* Show ellipsis if the name is too long */
+        }
+
+        .room-button:hover {
+            transform: scale(1.05);
+        }
+
+        /* Body style */
         body {
-            background-color: #121212; /* Dark background */
-            color: #ffffff; /* White text color */
+            background-color: #121212;
+            color: #ffffff;
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 0;
             padding: 20px;
         }
+
+        /* Input field style */
         input[type="text"] {
             padding: 10px;
             border: 1px solid #444;
@@ -22,6 +57,8 @@
             color: #ffffff;
             width: 300px;
         }
+
+        /* Button style */
         button {
             padding: 10px 15px;
             border: none;
@@ -32,30 +69,13 @@
             margin-top: 10px;
             transition: background-color 0.3s;
         }
+
         button:hover {
-            background-color: #3700b3; /* Darker shade on hover */
+            background-color: #3700b3;
         }
-        ul {
-            list-style: none; /* Remove default list styles */
-            padding: 0; /* Remove padding */
-            margin: 20px 0; /* Add margin */
-        }
-        li {
-            margin: 10px 0; /* Space between items */
-        }
-        a {
-            color: #ffffff; /* Link color */
-            text-decoration: none; /* Remove underline */
-            padding: 10px;
-            border-radius: 5px;
-            transition: background-color 0.3s; /* Transition for hover effect */
-        }
-        a:hover {
-            background-color: #3700b3; /* Background color on hover */
-        }
+        
     </style>
 </head>
-
 
 <body>
     <header>Join or Create a Room</header>
@@ -64,27 +84,30 @@
     <input type="text" id="roomNameInput" placeholder="Enter room name">
     <button onclick="createRoom()">Create Room</button>
 
-    <!-- Existing Rooms -->
-    <ul id="roomList"></ul>
+    <!-- Existing Rooms in a grid container -->
+    <div class="room-list-container" id="roomList"></div>
 
     <script>
         // Fetch and display existing rooms
         async function loadRooms() {
             const response = await fetch('/api/rooms');
             const rooms = await response.json();
+            
             const roomList = document.getElementById("roomList");
             roomList.innerHTML = ''; // Clear the list first
 
             Object.keys(rooms).forEach(roomId => {
-                const roomItem = document.createElement("li");
-                // roomItem.innerHTML = `<a href="/chat/${roomId}">${rooms[roomId].name}</a>`;
+                const roomButton = document.createElement("div");
+                roomButton.className = "room-button";
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const userName = urlParams.get('name'); // Get the 'name' from the URL
 
-                roomItem.innerHTML = `<a href="/chat/${roomId}?name=${encodeURIComponent(userName)}">${rooms[roomId].name}</a>`;
+                // roomButton.innerHTML = `<a href="/chat/${roomId}?name=${encodeURIComponent(userName)}" style="color: inherit; text-decoration: none;">${rooms[roomId].name}</a>`;
+                roomButton.innerHTML = `<a href="/chat/${roomId}?name=${encodeURIComponent(userName)}&roomName=${encodeURIComponent(rooms[roomId].name)}" style="color: inherit; text-decoration: none;">${rooms[roomId].name}</a>`;
 
-                roomList.appendChild(roomItem);
+                
+                roomList.appendChild(roomButton);
             });
         }
 
