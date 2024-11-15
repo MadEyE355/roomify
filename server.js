@@ -10,11 +10,14 @@ const io = new Server(server);
 app.use(express.json());
 
 const { MongoClient } = require('mongodb');
-const uri = "mongodb+srv://MadEyE:mongodb1@cluster0.83apq.mongodb.net/"; // replace with your actual connection string
-// require('dotenv').config();
-// const uri = process.env.MONGODB_URI;
+const uri = "mongodb+srv://MadEyE:mongodb1@cluster0.83apq.mongodb.net/"; // MongoDB connection string
 
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+const client = new MongoClient(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000, // 5 seconds to timeout connection
+    connectTimeoutMS: 10000, // 10 seconds timeout for the connection attempt
+});
 
 async function connectDB() {
     try {
@@ -22,6 +25,7 @@ async function connectDB() {
         console.log("Connected to MongoDB");
     } catch (error) {
         console.error("MongoDB connection error:", error);
+        setTimeout(connectDB, 5000); // Retry after 5 seconds
     }
 }
 
@@ -33,30 +37,50 @@ const chatsCollection = db.collection("chats");
 
 // Save a new room to the database
 async function saveRoom(roomName) {
-    const result = await roomsCollection.insertOne({ name: roomName });
-    return result;
+    try {
+        const result = await roomsCollection.insertOne({ name: roomName });
+        return result;
+    } catch (err) {
+        console.error("Error saving room:", err);
+        throw new Error('Failed to save room');
+    }
 }
 
 // Get all rooms from the database
 async function getRooms() {
-    const rooms = await roomsCollection.find().toArray();
-    return rooms;
+    try {
+        const rooms = await roomsCollection.find().toArray();
+        return rooms;
+    } catch (err) {
+        console.error("Error fetching rooms:", err);
+        throw new Error('Failed to fetch rooms');
+    }
 }
 
 // Save a message to the database
 async function saveMessage(roomName, userName, message) {
-    await chatsCollection.insertOne({
-        roomName: roomName,
-        userName: userName,
-        message: message,
-        timestamp: new Date()
-    });
+    try {
+        await chatsCollection.insertOne({
+            roomName: roomName,
+            userName: userName,
+            message: message,
+            timestamp: new Date(),
+        });
+    } catch (err) {
+        console.error("Error saving message:", err);
+        throw new Error('Failed to save message');
+    }
 }
 
 // Get messages for a specific room from MongoDB
 async function getMessages(roomId) {
-    const messages = await chatsCollection.find({ roomName: roomId }).sort({ timestamp: 1 }).toArray();
-    return messages;
+    try {
+        const messages = await chatsCollection.find({ roomName: roomId }).sort({ timestamp: 1 }).toArray();
+        return messages;
+    } catch (err) {
+        console.error("Error fetching chat history:", err);
+        throw new Error('Failed to fetch messages');
+    }
 }
 
 // Serve static files
@@ -87,9 +111,15 @@ app.post('/api/create-room', async (req, res) => {
     }
 
     try {
+        // Check if the room already exists
+        const existingRoom = await roomsCollection.findOne({ name: roomName });
+        if (existingRoom) {
+            return res.status(400).json({ error: "Room already exists" });
+        }
+
         // Save the room to the database
         const result = await saveRoom(roomName);
-        const roomId = result.insertedId.toString(); // MongoDB generates a unique _id for each room
+        const roomId = result.insertedId.toString();
         console.log(`Room created: ${roomName} with ID: ${roomId}`);
 
         res.json({ roomId, roomName });
@@ -123,18 +153,18 @@ io.on('connection', (socket) => {
             });
         } catch (err) {
             console.error("Error fetching chat history:", err);
+            socket.emit('message', "Error fetching chat history.");
         }
 
         // Listen for chat messages and broadcast to the same room
-        socket.on('chatMessage', (msg) => {
-            const message = `${userName}: ${msg}`;
-            io.to(roomId).emit('message', message); // Emit the message to all users in the room
-
-            // Save the message to MongoDB
-            saveMessage(roomId, userName, msg);
-
-            // Log the message sent
-            console.log(`Message from ${userName} in room ${roomId}: ${msg}`);
+        socket.on('chatMessage', async (msg) => {
+            try {
+                const message = `${userName}: ${msg}`;
+                io.to(roomId).emit('message', message); // Emit the message to all users in the room
+                await saveMessage(roomId, userName, msg);
+            } catch (err) {
+                console.error("Error saving message:", err);
+            }
         });
     });
 });
