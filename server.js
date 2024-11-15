@@ -2,7 +2,6 @@ const express = require('express');
 const { createServer } = require('http');
 const { join } = require('path');
 const { Server } = require('socket.io');
-const { MongoClient } = require('mongodb'); // Import MongoClient correctly
 
 const app = express();
 const server = createServer(app);
@@ -10,8 +9,10 @@ const io = new Server(server);
 
 app.use(express.json());
 
-// require('dotenv').config();  // Import dotenv to use environment variables
-const uri = "mongodb+srv://MadEyE:madeye3936@cluster0.83apq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0;"  // Fetch Mongo URI from the environment variable
+const { MongoClient } = require('mongodb');
+// const uri = "mongodb://localhost:27017/"; // replace with your actual connection string
+require('dotenv').config();
+const uri = process.env.MONGODB_URI;
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
